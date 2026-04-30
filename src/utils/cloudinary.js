@@ -17,15 +17,33 @@ const uploadOnCloudinary = async (localFilePath) => {
     });
 
     //file has been uploaded successfully
-    // console.log("File is uploaded on cloudinary", response.url);
-    fs.unlinkSync(localFilePath)
+
+    await fs.unlinkSync(localFilePath).catch(() => {});
 
     return response;
   } catch (error) {
-    fs.unlinkSync(localFilePath); //remove the locally saved temp file as the upload operation got failed
-
+    if (localFilePath) {
+      await fs.unlinkSync(localFilePath).catch(() => {}); //remove the locally saved temp file as the upload operation got failed
+    }
+    console.error("Cloudinary upload error:", error.message);
     return null;
   }
 };
 
-export { uploadOnCloudinary };
+const deleteFromCloudinary = async (publicId) => {
+  if (!publicId) return null;
+
+  try {
+    const response = await cloudinary.uploader.destroy(publicId);
+    return response
+  } catch (error) {
+    console.error(
+      "Cloudinary delete error:",
+      error.message || "Failed to delete on coudinary"
+    );
+
+    return null
+  }
+};
+
+export { uploadOnCloudinary, deleteFromCloudinary };
